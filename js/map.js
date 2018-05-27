@@ -91,7 +91,7 @@ function getColor(d) {
 	var sqlQuery = "SELECT * FROM cell_towers";
 	var cellTowers;
 			
-	$.getJSON("../data/BsStat.geojson", function(data) { 
+	$.getJSON("data/BSstat.geojson", function(data) { 
 		var BsStats;
 		BsStats = L.geoJSON(data,
 						{onEachFeature: onEachFeature,
@@ -100,7 +100,7 @@ function getColor(d) {
 					
 
 		
-			$.getJSON(url + sqlQuery, function(data) {
+			$.getJSON("data/celltowers.geojson", function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
 					onEachFeature: function (feature, layer) {
