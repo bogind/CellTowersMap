@@ -92,10 +92,10 @@ function getColor(d) {
 	var sqlQuery = null;
 	var polygons = null;
 	var url = "https://" + cartoDBUserName +".carto.com/api/v2/sql?format=GeoJSON&q="
-	sqlQuery = "SELECT * FROM cell_towers";
+	var sqlQuery = "SELECT * FROM cell_towers";
 	var cellTowers;
 			
-	$.getJSON("data/BSstat.geojson", function(data) { 
+	$.getJSON("../data/BsStat.geojson", function(data) { 
 		var BsStats;
 		BsStats = L.geoJSON(data,
 						{onEachFeature: onEachFeature,
@@ -428,7 +428,24 @@ function onMapClick(e) {
 				}
 				
 				inrange[0] = countbuffers.reduce(function(acc, val) { return acc + val; });
+				info.update();
 			};
 			console.log(inrange[0]);
 };
 map.on('click', onMapClick);
+
+var info = L.control();
+
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this.update();
+    return this._div;
+};
+
+// method that we will use to update the control based on feature properties passed
+info.update = function () {
+    this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
+	'<br>' + inrange[0]);
+};
+
+info.addTo(map);
