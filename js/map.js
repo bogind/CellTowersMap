@@ -214,8 +214,7 @@ function getColor(d) {
 							controlDiv.value = 'Buffer';
 							controlDiv.style.backgroundColor = 'white';     
 							controlDiv.style.height = '30px';
-							controlDiv.style.width = '65px';
-							L.DomEvent
+							controlDiv.style.width = '85px';
 							L.DomEvent
 							.addListener(controlDiv, 'click', function () {
 							
@@ -253,8 +252,7 @@ function getColor(d) {
 							controlDiv.value = 'Clear Buffer';
 							controlDiv.style.backgroundColor = 'white';     
 							controlDiv.style.height = '30px';
-							controlDiv.style.width = '65px';
-							L.DomEvent
+							controlDiv.style.width = '85px';
 							L.DomEvent
 							.addListener(controlDiv, 'click', function () {
 							
