@@ -92,10 +92,10 @@ function getColor(d) {
 	var sqlQuery = null;
 	var polygons = null;
 	var url = "https://" + cartoDBUserName +".carto.com/api/v2/sql?format=GeoJSON&q="
-	var sqlQuery = "SELECT * FROM cell_towers";
+	sqlQuery = "SELECT * FROM cell_towers";
 	var cellTowers;
 			
-	$.getJSON("../data/BsStat.geojson", function(data) { 
+	$.getJSON("data/BSstat.geojson", function(data) { 
 		var BsStats;
 		BsStats = L.geoJSON(data,
 						{onEachFeature: onEachFeature,
