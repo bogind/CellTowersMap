@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<! meta needed for bootstrap >
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<! meta added for hebrew in firefox >
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"/>
+		<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+		<script src="js/leaflet-measure.js"></script>
+		<link rel="stylesheet" href="css/leaflet-measure.css">
+		<script src="js/L.Control.MousePosition.js"></script>
+		<link rel="stylesheet" href="css/L.Control.MousePosition.css">
+		<!relative path to stylesheet>
+		<link rel="stylesheet" type="text/css" href="css/styles.css">
+		<! load truf.js>
+		<script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
+		<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+		<title>איחור ממוצע לפי אזור באר שבע</title>
+	</head>
+	<body>
+		<div id="map" style="width: 100%; height: 100%;">
+			<script src="js/map.js"></script>			
+		</div>
+		<! a container and infromation for the legend >
+		<div class="container">
+		<script src="js/legend.js"></script>
+			<button id="legendbut" type="button" onclick="open_legend()">Legend</button>
+			<div id="legend"></div>
+		</div>
+	</body>
+</html>
