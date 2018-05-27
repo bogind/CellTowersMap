@@ -90,7 +90,19 @@ function getColor(d) {
 	var url = "https://" + cartoDBUserName +".carto.com/api/v2/sql?format=GeoJSON&q="
 	var sqlQuery = "SELECT * FROM cell_towers";
 	var cellTowers;
-			
+	var cellTowerBuffer;
+	var turfbuffer;
+	var polygons = [];
+	var countbuffers = [];
+	var clicked;
+	var turfcoords;
+	var turfpoint;
+	var turfbuffer;
+	var polygons = [];
+	var inrange = [0];
+	var info = L.control();
+
+	
 	$.getJSON("data/BSstat.geojson", function(data) { 
 		var BsStats;
 		BsStats = L.geoJSON(data,
@@ -114,11 +126,19 @@ function getColor(d) {
 							fillColor: getColor(feature.properties.company),
 							weight: 1,
 							opacity: 1,
+							radius: 4,
 							color: "black",
 							fillOpacity: 0.5
 						};
 					}
 				}).addTo(map);
+								var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
+								cellTowerBuffer = L.geoJSON(buffered);
+									turfbuffer = cellTowerBuffer.toGeoJSON()
+									for(i in turfbuffer.features){
+										polygons.push(turfbuffer.features[i].geometry.coordinates);
+									}
+									turfbuffer = turf.polygons(polygons);
 		
 				var BS = {
 				"<span style='color: #008ae6'>Be'er Sheva Mean Time Variation</span>": BsStats,
@@ -177,17 +197,7 @@ function getColor(d) {
 		};
 
 
-	var cellTowerBuffer;
-	var turfbuffer;
-	var polygons = [];
-	var countbuffers = [];
-	var clicked;
-	var turfcoords;
-	var turfpoint;
-	var turfbuffer;
-	var polygons = [];
-	var inrange = [0];
-	var info = L.control();
+	
 
 	info.onAdd = function (map) {
 		this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -197,8 +207,8 @@ function getColor(d) {
 
 	// method that we will use to update the control based on feature properties passed
 	info.update = function () {
-		this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
-		'<br><center>' + inrange[0]+'</center>');
+		this._div.innerHTML = '<center><h5>Number of Cellular antennas<br> within 0.5 Kilometers:</h5>' +  (
+		'<br><font size="5"><u>' + inrange[0]+'</u></font></center>');
 	};
 
 	L.Control.addbuffer = L.Control.extend(
@@ -218,16 +228,16 @@ function getColor(d) {
 							L.DomEvent
 							.addListener(controlDiv, 'click', function () {
 							
-							if(map.hasLayer(cellTowers)){
-									var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
-									cellTowerBuffer = L.geoJSON(buffered).addTo(map);
-									turfbuffer = cellTowerBuffer.toGeoJSON()
-									for(i in turfbuffer.features){
-										polygons.push(turfbuffer.features[i].geometry.coordinates);
-									}
-									turfbuffer = turf.polygons(polygons);
+							//if(map.hasLayer(cellTowers)){
+									//var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
+									cellTowerBuffer.addTo(map);
+									//turfbuffer = cellTowerBuffer.toGeoJSON()
+									//for(i in turfbuffer.features){
+										//polygons.push(turfbuffer.features[i].geometry.coordinates);
+									//}
+									//turfbuffer = turf.polygons(polygons);
 									
-								};
+								//};
 
 
 							});
@@ -293,16 +303,16 @@ function onMapClick(e) {
 		};
 	clicked = L.geoJSON(clicked).addTo(map)
 	
-	if(map.hasLayer(cellTowerBuffer)){
+	
 		countbuffers = []
-					for(i in turfbuffer.features){
-				  countbuffers.push(turf.booleanWithin(turfpoint, turfbuffer.features[i]));
-				}
+	for(i in turfbuffer.features){
+		  countbuffers.push(turf.booleanWithin(turfpoint, turfbuffer.features[i]));
+	}
 				
-				inrange[0] = countbuffers.reduce(function(acc, val) { return acc + val; });
-				info.update();
-			};
-			console.log(inrange[0]);
+	inrange[0] = countbuffers.reduce(function(acc, val) { return acc + val; });
+	info.update();
+			
+	console.log(inrange[0]);
 };
 map.on('click', onMapClick);
 
