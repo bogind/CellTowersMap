@@ -272,7 +272,7 @@ info.onAdd = function (map) {
 // method that we will use to update the control based on feature properties passed
 info.update = function () {
     this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
-	'<br>' + inrange[0]);
+	'<br><center>' + inrange[0]+'</center>');
 };
 
 info.addTo(map);
