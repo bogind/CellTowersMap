@@ -100,7 +100,7 @@ function getColor(d) {
 					
 
 		
-			$.getJSON("data/celltowers.geojson", function(data) {
+			$.getJSON(url + sqlQuery, function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
 					onEachFeature: function (feature, layer) {
@@ -145,6 +145,7 @@ function getColor(d) {
 
 	L.control.mousePosition().addTo(map);
 				
+				
 		
 
 		function buffersize(type,intensity){
@@ -180,6 +181,26 @@ function getColor(d) {
 	var turfbuffer;
 	var polygons = [];
 	var countbuffers = [];
+	var clicked;
+	var turfcoords;
+	var turfpoint;
+	var turfbuffer;
+	var polygons = [];
+	var inrange = [0];
+	var info = L.control();
+
+	info.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+		this.update();
+		return this._div;
+	};
+
+	// method that we will use to update the control based on feature properties passed
+	info.update = function () {
+		this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
+		'<br><center>' + inrange[0]+'</center>');
+	};
+
 	L.Control.addbuffer = L.Control.extend(
 					{
 						options:
@@ -242,6 +263,8 @@ function getColor(d) {
 							// Remove Other versions of layer
 								if(map.hasLayer(cellTowerBuffer)){
 									map.removeLayer(cellTowerBuffer);
+									inrange[0] = 0;
+									info.update();
 								};
 							
 								// Get GeoJSON with SQL query
@@ -255,25 +278,6 @@ function getColor(d) {
 	var removebuffer = new L.Control.removebuffer();
 	map.addControl(removebuffer);
 	
-	var clicked;
-var turfcoords;
-var turfpoint;
-var turfbuffer;
-var polygons = [];
-var inrange = [0];
-var info = L.control();
-
-info.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-    this.update();
-    return this._div;
-};
-
-// method that we will use to update the control based on feature properties passed
-info.update = function () {
-    this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
-	'<br><center>' + inrange[0]+'</center>');
-};
 
 info.addTo(map);
 function onMapClick(e) {
