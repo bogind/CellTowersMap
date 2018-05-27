@@ -13,15 +13,11 @@
 					
 	var Thunderforest_neighbourhood = L.tileLayer('https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=278544e7c2664b7cb3d23b7433e96f5c', {
 		attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-		apikey: '278544e7c2664b7cb3d23b7433e96f5c',
-		maxZoom: 22,
-		minZoom: 12
+		apikey: '278544e7c2664b7cb3d23b7433e96f5c'
 		}).addTo(map);
 					
 	var Thunderforest_transport_dark = L.tileLayer('https://{s}.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png?apikey=278544e7c2664b7cb3d23b7433e96f5c',{
-		apikey: '278544e7c2664b7cb3d23b7433e96f5c',
-		maxZoom: 22,
-		minZoom: 12
+		apikey: '278544e7c2664b7cb3d23b7433e96f5c'
 		});
 				
 				
@@ -100,7 +96,7 @@ function getColor(d) {
 		BsStats = L.geoJSON(data,
 						{onEachFeature: onEachFeature,
 						style: style
-						}).addTo(map);
+						});
 					
 
 		
@@ -149,147 +145,6 @@ function getColor(d) {
 
 	L.control.mousePosition().addTo(map);
 				
-				
-				
-
-				
-// adding the buttons for the queries
-				
-	L.Control.addearly = L.Control.extend(
-					{
-						options:
-						{
-							position: 'topleft',
-						},
-						onAdd: function (map) {
-							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
-							controlDiv.type="button";
-							controlDiv.title = 'Show only areas with early buses';
-							controlDiv.value = 'Early';
-							controlDiv.style.backgroundColor = 'white';     
-							controlDiv.style.height = '30px';
-							controlDiv.style.width = '65px';
-							L.DomEvent
-							.addListener(controlDiv, 'click', function () {
-							
-								sqlQuery = "SELECT * FROM bswgs2 WHERE avg_timedi < -1 AND num_timedi > 0";
-			
-							// Remove Other versions of layer
-								if(map.hasLayer(polygons)){
-									map.removeLayer(polygons);
-								};
-							
-								// Get GeoJSON with SQL query
-								$.getJSON("https://" + cartoDBUserName +
-											".carto.com/api/v2/sql?format=GeoJSON&q=" + 
-											sqlQuery, function(data) {
-									polygons = L.geoJSON(data, {
-										onEachFeature: function (feature, layer) {
-											layer.bindPopup( "Mean Time Variation: "+
-															feature.properties.avg_timedi +
-															"</br>Time Variation Range: "+
-															feature.properties.range);
-										}
-									}).addTo(map);
-								});
-							});
-
-							var controlUI = L.DomUtil.create('a', 'leaflet-draw-edit-remove', controlDiv);
-							controlUI.title = 'Show only areas with early buses';
-							controlUI.href = '#';
-							controlUI.value = 'Early'
-							return controlDiv;
-						}
-					});
-					
-	var addearlycontrol = new L.Control.addearly();
-	map.addControl(addearlycontrol);
-					
-				
-	L.Control.addlate = L.Control.extend(
-					{
-						options:
-						{
-							position: 'topleft',
-						},
-						onAdd: function (map) {
-							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
-							controlDiv.type="button";
-							controlDiv.title = 'Show only areas with late buses';
-							controlDiv.value = 'Late';
-							controlDiv.style.backgroundColor = 'white';     
-							controlDiv.style.height = '30px';
-							controlDiv.style.width = '65px';
-							L.DomEvent
-							.addListener(controlDiv, 'click', function () {
-							
-								sqlQuery = "SELECT * FROM bswgs2 WHERE avg_timedi > 1 AND num_timedi > 0";
-			
-							// Remove Other versions of layer
-								if(map.hasLayer(polygons)){
-									map.removeLayer(polygons);
-								};
-							
-								// Get GeoJSON with SQL query
-								$.getJSON("https://" + cartoDBUserName +
-											".carto.com/api/v2/sql?format=GeoJSON&q=" + 
-											sqlQuery, function(data) {
-									polygons = L.geoJSON(data, {
-										onEachFeature: function (feature, layer) {
-											layer.bindPopup( "Mean Time Variation: "+
-															feature.properties.avg_timedi +
-															"</br>Time Variation Range: "+
-															feature.properties.range);
-										}
-									}).addTo(map);
-								});
-							});
-
-							return controlDiv;
-						}
-					});
-					
-	var addlatecontrol = new L.Control.addlate();
-	map.addControl(addlatecontrol);
-					
-					
-	L.Control.removeall = L.Control.extend(
-					{
-						options:
-						{
-							position: 'topleft',
-						},
-						onAdd: function (map) {
-							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
-							controlDiv.type="button";
-							controlDiv.title = 'Remove data from queries';
-							controlDiv.value = 'Remove';
-							controlDiv.style.backgroundColor = 'white';     
-							controlDiv.style.height = '30px';
-							controlDiv.style.width = '65px';
-							L.DomEvent
-							L.DomEvent
-							.addListener(controlDiv, 'click', function () {
-							
-								sqlQuery = "";
-			
-							// Remove Other versions of layer
-								if(map.hasLayer(polygons)){
-									map.removeLayer(polygons);
-								};
-							
-								// Get GeoJSON with SQL query
-
-							});
-
-							return controlDiv;
-						}
-					});
-					
-	var removeboth = new L.Control.removeall();
-	map.addControl(removeboth);
-				
-		
 		
 
 		function buffersize(type,intensity){
@@ -406,6 +261,21 @@ var turfpoint;
 var turfbuffer;
 var polygons = [];
 var inrange = [0];
+var info = L.control();
+
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this.update();
+    return this._div;
+};
+
+// method that we will use to update the control based on feature properties passed
+info.update = function () {
+    this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
+	'<br>' + inrange[0]);
+};
+
+info.addTo(map);
 function onMapClick(e) {
 	if(map.hasLayer(clicked)){
 					map.removeLayer(clicked);
@@ -434,18 +304,3 @@ function onMapClick(e) {
 };
 map.on('click', onMapClick);
 
-var info = L.control();
-
-info.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-    this.update();
-    return this._div;
-};
-
-// method that we will use to update the control based on feature properties passed
-info.update = function () {
-    this._div.innerHTML = '<h5>Number of Cellular antennas within 0.5 Kilometers:</h5>' +  (
-	'<br>' + inrange[0]);
-};
-
-info.addTo(map);
