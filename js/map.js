@@ -324,7 +324,7 @@ legend.onAdd = function (map) {
 		div.innerHTML += "<p><i style='background:#4d94ff'></i>פלאפון</p>" 
 		div.innerHTML += "<p><i style='background:#ffa31a'></i>הוט מובייל</p>" 
 		div.innerHTML += "<p><i style='background:#00e6e6'></i>P.H.I (פרטנר והוט)</p>" 
-		div.innerHTML += "<p><i style='background:#800080'></i>אחר</p>" 
+		div.innerHTML += "<p><i style='background:#800080'></i>סלקום</p>" 
 		
 
 
