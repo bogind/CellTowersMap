@@ -112,7 +112,7 @@ function getColor(d) {
 					
 
 		
-			$.getJSON(url + sqlQuery, function(data) {
+			$.getJSON("data/celltowers.geojson", function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
 					//onEachFeature: function (feature, layer) {
