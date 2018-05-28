@@ -377,7 +377,7 @@ $("#company_sel").on("change", function() {
 								weight: 1}) 
 		  }
 		  if(layer.feature.properties.company != valueSelected) {    
-			layer.setStyle({ fillOpacity : 0.01,
+			layer.setStyle({ fillOpacity : 0.001,
 								weight: 0}) 
 		  }
 		  
