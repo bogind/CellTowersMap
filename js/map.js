@@ -83,7 +83,7 @@ function getColor(d) {
 				
 // Read GeoJSON into a named variable, add the popup function and the styling function
 	var BsStats;
-	var BS;
+	var LayersControl;
 	var cartoDBUserName = "bogind";
 	var sqlQuery = null;
 	var polygons = null;
@@ -115,9 +115,9 @@ function getColor(d) {
 			$.getJSON(url + sqlQuery, function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
-					onEachFeature: function (feature, layer) {
-						layer.bindPopup(feature.properties.company);
-					},
+					//onEachFeature: function (feature, layer) {
+						//layer.bindPopup(feature.properties.company);
+					//},
 					pointToLayer: function(geoJsonPoint, latlng) {
 						return L.circleMarker(latlng);
 					},
@@ -130,7 +130,8 @@ function getColor(d) {
 							color: "black",
 							fillOpacity: 0.5
 						};
-					}
+					},
+					interactive: false
 				}).addTo(map);
 								var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
 								cellTowerBuffer = L.geoJSON(buffered);
@@ -140,15 +141,15 @@ function getColor(d) {
 									}
 									turfbuffer = turf.polygons(polygons);
 		
-				var BS = {
-				"<span style='color: #008ae6'>Be'er Sheva Mean Time Variation</span>": BsStats,
+				var LayersControl = {
+				//"<span style='color: #008ae6'>Be'er Sheva Mean Time Variation</span>": BsStats,
 				"cell Towers":cellTowers
 					};	
 			// Add Control objects to map
 			// Had to move that here because ajax was too fast for the output to be caught outside
-			L.control.layers(baseMaps, BS).addTo(map);
+			L.control.layers(baseMaps, LayersControl).addTo(map);
 	});
-	return([BsStats, BS, cellTowers]);
+	return([BsStats, LayersControl, cellTowers]);
 		});
 	
 // Add Measure tool in a Control object
@@ -204,6 +205,7 @@ function getColor(d) {
 		this.update();
 		return this._div;
 	};
+	info.setPosition('bottomleft');
 
 	// method that we will use to update the control based on feature properties passed
 	info.update = function () {
@@ -221,23 +223,18 @@ function getColor(d) {
 							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
 							controlDiv.type="button";
 							controlDiv.title = "Create Buffers to see cell tower range (fictional, i don't really know how to calculate that)";
-							controlDiv.value = 'Buffer';
+							controlDiv.value = 'Buffer On/Off';
 							controlDiv.style.backgroundColor = 'white';     
 							controlDiv.style.height = '30px';
 							controlDiv.style.width = '85px';
 							L.DomEvent
 							.addListener(controlDiv, 'click', function () {
 							
-							//if(map.hasLayer(cellTowers)){
-									//var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
-									cellTowerBuffer.addTo(map);
-									//turfbuffer = cellTowerBuffer.toGeoJSON()
-									//for(i in turfbuffer.features){
-										//polygons.push(turfbuffer.features[i].geometry.coordinates);
-									//}
-									//turfbuffer = turf.polygons(polygons);
-									
-								//};
+							if(map.hasLayer(cellTowerBuffer)){
+								map.removeLayer(cellTowerBuffer);
+							}else{
+								cellTowerBuffer.addTo(map);
+							}
 
 
 							});
@@ -249,7 +246,7 @@ function getColor(d) {
 	var addbuffer = new L.Control.addbuffer();
 	map.addControl(addbuffer);
 
-	L.Control.removebuffer = L.Control.extend(
+	/*L.Control.removebuffer = L.Control.extend(
 					{
 						options:
 						{
@@ -284,7 +281,7 @@ function getColor(d) {
 					});
 					
 	var removebuffer = new L.Control.removebuffer();
-	map.addControl(removebuffer);
+	map.addControl(removebuffer);*/
 	
 
 info.addTo(map);
@@ -316,3 +313,22 @@ function onMapClick(e) {
 };
 map.on('click', onMapClick);
 
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+
+    var div = L.DomUtil.create('div', 'info legend')
+
+
+		div.innerHTML += "<p><i style='background:#b30000'></i>גולן טלקום</p>" 
+		div.innerHTML += "<p><i style='background:#4d94ff'></i>פלאפון</p>" 
+		div.innerHTML += "<p><i style='background:#ffa31a'></i>הוט מובייל</p>" 
+		div.innerHTML += "<p><i style='background:#00e6e6'></i>P.H.I (פרטנר והוט)</p>" 
+		div.innerHTML += "<p><i style='background:#800080'></i>אחר</p>" 
+		
+
+
+    return div;
+};
+
+legend.addTo(map);
