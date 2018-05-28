@@ -128,7 +128,7 @@ function getColor(d) {
 							opacity: 1,
 							radius: 4,
 							color: "black",
-							fillOpacity: 0.5
+							fillOpacity: 0.8
 						};
 					},
 					interactive: false
