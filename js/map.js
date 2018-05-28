@@ -332,3 +332,56 @@ legend.onAdd = function (map) {
 };
 
 legend.addTo(map);
+
+
+var dropdown = L.control({position: "topright"});
+dropdown.onAdd = function (map) {
+    var div = L.DomUtil.create("div", "dropdown");
+    div.innerHTML = '\
+        <select id="company_sel">\
+		<option value="כל החברות">\
+            כל החברות\
+        </option>\
+        <option value="גולן טלקום">\
+            גולן טלקום\
+        </option>\
+        <option value="פלאפון">\
+            פלאפון\
+        </option>\
+        <option value="הוט מובייל">\
+            הוט מובייל\
+        </option>\
+		<option value="P.H.I">\
+            P.H.I (פרטנר והוט)\
+        </option>\
+		<option value="סלקום">\
+            סלקום\
+        </option>\
+    </select>\
+    ';
+    return div;
+};
+dropdown.addTo(map);
+
+$("#company_sel").on("change", function() {
+	
+	var valueSelected = $("#company_sel").val();
+	
+	cellTowers.eachLayer(function (layer) { 
+	if(valueSelected == 'כל החברות'){
+		layer.setStyle({ fillOpacity : 0.75,
+							weight: 1}) 
+	}else{
+		  if(layer.feature.properties.company == valueSelected) {    
+			layer.setStyle({ fillOpacity : 1,
+								weight: 1}) 
+		  }
+		  if(layer.feature.properties.company != valueSelected) {    
+			layer.setStyle({ fillOpacity : 0.01,
+								weight: 0}) 
+		  }
+		  
+	}
+		});
+	
+});
