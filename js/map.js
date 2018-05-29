@@ -1,9 +1,9 @@
 
 // create map object
 				
-				var map = L.map('map', 
-				{center: [31.251155, 34.790096], 
-				zoom: 13});
+	var map = L.map('map', 
+		{center: [31.251155, 34.790096], 
+		zoom: 13});
 				
 				
 // Add OpenStreetMap and thunderforest tile layers variables
@@ -29,66 +29,35 @@
 		"<span style='color: #478547'>Thunderforest <span style='color: #2b2b73'>Transport</span></span>": Thunderforest_transport_dark
 		};
 				
-// Function to create the popups for the GeoJSON layer
-				
-	function onEachFeature(feature, layer) {
-		if (feature.properties && feature.properties.NUM_timedi) {
-			layer.bindPopup(
-				"<b># of Obs: </b>" + 
-				feature.properties.NUM_timedi + 
-				"</br><b> Mean Time Variation: </b>" + 
-				// rounded to create more informative popups
-				Math.round(feature.properties.AVG_timedi*10)/10 + 
-				" Minutes" + 
-				"</br> <b>Range of obs: </b>" + 
-				feature.properties.Range +
-				" Minutes");
-			}
-		}
 
 // Function to create the style for the GeoJSON layer
 		
-	function style(feature) {
-		if(feature.properties.NUM_timedi > 0){
-			if(feature.properties.AVG_timedi <= -1) {
-				return {color: "#2eb82e", fillOpacity: 0.3, weight: 0.2};
-			}	
-			else if(feature.properties.AVG_timedi >= 1){				
-				return {color: "#b30000", fillOpacity: 0.3, weight: 0.2};
-			}
-			else if(feature.properties.AVG_timedi < 1 && feature.properties.AVG_timedi > -1){
-				return {color: "#33ccff", fillOpacity: 0.3, weight: 0.2};
-			}
-		}
-		else{
-			return {color: "gray", fillOpacity: 0.6, weight: 0.3};
-			}
-		}
 			
-function getColor(d) {
-    if(d == "גולן טלקום"){ 
-		return "#b30000";
-	}
-	else if(d == "P.H.I"){
-		return "#00e6e6";
-	}
-	else if(d == "פלאפון"){
-		return "#4d94ff";
-	}
-	else if(d == "הוט מובייל") {
-		return "#ffa31a";
-	}
-	else {return "#800080"};
-}			
+	function getColor(d) {
+		if(d == "גולן טלקום"){ 
+			return "#b30000";
+		}
+		else if(d == "P.H.I"){
+			return "#00e6e6";
+		}
+		else if(d == "פלאפון"){
+			return "#4d94ff";
+		}
+		else if(d == "הוט מובייל") {
+			return "#ffa31a";
+		}
+		else {return "#800080"}; // cellcom towers
+	}			
 				
-// Read GeoJSON into a named variable, add the popup function and the styling function
+	// Read GeoJSON into a named variable, add the popup function and the styling function
+
 	var BsStats;
 	var LayersControl;
 	var cartoDBUserName = "bogind";
 	var sqlQuery = null;
 	var polygons = null;
 	var url = "https://" + cartoDBUserName +".carto.com/api/v2/sql?format=GeoJSON&q="
-	var sqlQuery = "SELECT * FROM cell_towers";
+	var sqlQuery = "SELECT id, company, type_, intensity  FROM cell_towers";
 	var cellTowers;
 	var cellTowerBuffer;
 	var turfbuffer;
@@ -103,16 +72,11 @@ function getColor(d) {
 	var info = L.control();
 
 	
-	$.getJSON("data/BSstat.geojson", function(data) { 
-		var BsStats;
-		BsStats = L.geoJSON(data,
-						{onEachFeature: onEachFeature,
-						style: style
-						});
-					
+	// Load geojson layer, add as circle markers, add styling,
+	// create buffers and invisible polygons used to calculate the inside value.
+	// after all that add controls for basemaps and layer to map
 
-		
-			$.getJSON("data/celltowers.geojson", function(data) {
+	$.getJSON("data/celltowers.geojson", function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
 					//onEachFeature: function (feature, layer) {
@@ -126,7 +90,7 @@ function getColor(d) {
 							fillColor: getColor(feature.properties.company),
 							weight: 1,
 							opacity: 1,
-							radius: 4,
+							radius: 5,
 							color: "black",
 							fillOpacity: 0.8
 						};
@@ -142,15 +106,16 @@ function getColor(d) {
 									turfbuffer = turf.polygons(polygons);
 		
 				var LayersControl = {
-				//"<span style='color: #008ae6'>Be'er Sheva Mean Time Variation</span>": BsStats,
 				"cell Towers":cellTowers
 					};	
+					
 			// Add Control objects to map
 			// Had to move that here because ajax was too fast for the output to be caught outside
+			
 			L.control.layers(baseMaps, LayersControl).addTo(map);
+			return([ LayersControl, cellTowers]);
 	});
-	return([BsStats, LayersControl, cellTowers]);
-		});
+	
 	
 // Add Measure tool in a Control object
 				
@@ -167,7 +132,8 @@ function getColor(d) {
 	L.control.mousePosition().addTo(map);
 				
 				
-		
+	// messing around with different sizes of buffers, 
+	// not used because i don't really know how to calculate that.
 
 		function buffersize(type,intensity){
 			if(type == "מתקן גישה אלחוטי"){
@@ -199,7 +165,7 @@ function getColor(d) {
 
 
 	
-
+	// add info control to map
 	info.onAdd = function (map) {
 		this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
 		this.update();
@@ -207,12 +173,16 @@ function getColor(d) {
 	};
 	info.setPosition('bottomleft');
 
-	// method that we will use to update the control based on feature properties passed
+	// create function to update the info control
+	
 	info.update = function () {
 		this._div.innerHTML = '<center><h5>Number of Cellular antennas<br> within 0.5 Kilometers:</h5>' +  (
 		'<br><font size="5"><u>' + inrange[0]+'</u></font></center>');
 	};
-
+	
+	// create the control to ad the buffer to the map
+	// only add because it's created as a hidden layer when the map is loaded.
+	
 	L.Control.addbuffer = L.Control.extend(
 					{
 						options:
@@ -222,7 +192,7 @@ function getColor(d) {
 						onAdd: function (map) {
 							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
 							controlDiv.type="button";
-							controlDiv.title = "Create Buffers to see cell tower range (fictional, i don't really know how to calculate that)";
+							controlDiv.title = "Create Buffers to see cell tower range (500 meters)";
 							controlDiv.value = 'Buffer On/Off';
 							controlDiv.style.backgroundColor = 'white';     
 							controlDiv.style.height = '30px';
@@ -246,142 +216,126 @@ function getColor(d) {
 	var addbuffer = new L.Control.addbuffer();
 	map.addControl(addbuffer);
 
-	/*L.Control.removebuffer = L.Control.extend(
-					{
-						options:
-						{
-							position: 'topleft',
-						},
-						onAdd: function (map) {
-							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
-							controlDiv.type="button";
-							controlDiv.title = "delete the Buffers to see cell tower range (fictional, i don't really know how to calculate that)";
-							controlDiv.value = 'Clear Buffer';
-							controlDiv.style.backgroundColor = 'white';     
-							controlDiv.style.height = '30px';
-							controlDiv.style.width = '85px';
-							L.DomEvent
-							.addListener(controlDiv, 'click', function () {
-							
-								sqlQuery = "";
-			
-							// Remove Other versions of layer
-								if(map.hasLayer(cellTowerBuffer)){
-									map.removeLayer(cellTowerBuffer);
-									inrange[0] = 0;
-									info.update();
-								};
-							
-								// Get GeoJSON with SQL query
 
-							});
+	info.addTo(map);
 
-							return controlDiv;
-						}
-					});
-					
-	var removebuffer = new L.Control.removebuffer();
-	map.addControl(removebuffer);*/
-	
-
-info.addTo(map);
-function onMapClick(e) {
-	if(map.hasLayer(clicked)){
+	// create function to update the clicked value of the info.
+	function onMapClick(e) {
+		if(map.hasLayer(clicked)){
+						map.removeLayer(clicked);
+				};
+		clicked = L.latLng(e.latlng);
+		clicked = L.marker(clicked);
+		clicked = clicked.toGeoJSON();
+		turfcoords = clicked;
+		turfpoint = turf.point(turfcoords.geometry.coordinates)
+		inrange = [0]
+		if(map.hasLayer(clicked)){
 					map.removeLayer(clicked);
 			};
-	clicked = L.latLng(e.latlng);
-	clicked = L.marker(clicked);
-	clicked = clicked.toGeoJSON();
-	turfcoords = clicked;
-	turfpoint = turf.point(turfcoords.geometry.coordinates)
-	inrange = [0]
-	if(map.hasLayer(clicked)){
-				map.removeLayer(clicked);
-		};
-	clicked = L.geoJSON(clicked).addTo(map)
-	
-	
-		countbuffers = []
-	for(i in turfbuffer.features){
-		  countbuffers.push(turf.booleanWithin(turfpoint, turfbuffer.features[i]));
-	}
-				
-	inrange[0] = countbuffers.reduce(function(acc, val) { return acc + val; });
-	info.update();
-			
-	console.log(inrange[0]);
-};
-map.on('click', onMapClick);
-
-var legend = L.control({position: 'bottomright'});
-
-legend.onAdd = function (map) {
-
-    var div = L.DomUtil.create('div', 'info legend')
-
-
-		div.innerHTML += "<p><i style='background:#b30000'></i>גולן טלקום</p>" 
-		div.innerHTML += "<p><i style='background:#4d94ff'></i>פלאפון</p>" 
-		div.innerHTML += "<p><i style='background:#ffa31a'></i>הוט מובייל</p>" 
-		div.innerHTML += "<p><i style='background:#00e6e6'></i>P.H.I (פרטנר והוט)</p>" 
-		div.innerHTML += "<p><i style='background:#800080'></i>סלקום</p>" 
+		clicked = L.geoJSON(clicked).addTo(map)
 		
+		
+			countbuffers = []
+		for(i in turfbuffer.features){
+			  countbuffers.push(turf.booleanWithin(turfpoint, turfbuffer.features[i]));
+		}
+					
+		inrange[0] = countbuffers.reduce(function(acc, val) { return acc + val; });
+		info.update();
+				
+		console.log(inrange[0]);
+	};
 
+	map.on('click', onMapClick);
 
-    return div;
-};
-
-legend.addTo(map);
-
-
-var dropdown = L.control({position: "topright"});
-dropdown.onAdd = function (map) {
-    var div = L.DomUtil.create("div", "dropdown");
-    div.innerHTML = '\
-        <select id="company_sel">\
-		<option value="כל החברות">\
-            כל החברות\
-        </option>\
-        <option value="גולן טלקום">\
-            גולן טלקום\
-        </option>\
-        <option value="פלאפון">\
-            פלאפון\
-        </option>\
-        <option value="הוט מובייל">\
-            הוט מובייל\
-        </option>\
-		<option value="P.H.I">\
-            P.H.I (פרטנר והוט)\
-        </option>\
-		<option value="סלקום">\
-            סלקום\
-        </option>\
-    </select>\
-    ';
-    return div;
-};
-dropdown.addTo(map);
-
-$("#company_sel").on("change", function() {
+	// create legend for celltowers
 	
-	var valueSelected = $("#company_sel").val();
+	var legend = L.control({position: 'bottomright'});
+
+	legend.onAdd = function (map) {
+
+		var div = L.DomUtil.create('div', 'info legend')
+
+
+			div.innerHTML += "<p><i style='background:#b30000'></i>גולן טלקום</p>" 
+			div.innerHTML += "<p><i style='background:#4d94ff'></i>פלאפון</p>" 
+			div.innerHTML += "<p><i style='background:#ffa31a'></i>הוט מובייל</p>" 
+			div.innerHTML += "<p><i style='background:#00e6e6'></i>P.H.I (פרטנר והוט)</p>" 
+			div.innerHTML += "<p><i style='background:#800080'></i>סלקום</p>" 
+			
+
+
+		return div;
+	};
+
+	legend.addTo(map);
+
+	// create and add dropdown menu
 	
-	cellTowers.eachLayer(function (layer) { 
-	if(valueSelected == 'כל החברות'){
-		layer.setStyle({ fillOpacity : 0.75,
-							weight: 1}) 
-	}else{
-		  if(layer.feature.properties.company == valueSelected) {    
-			layer.setStyle({ fillOpacity : 1,
+	var dropdown = L.control({position: "topright"});
+	dropdown.onAdd = function (map) {
+		var div = L.DomUtil.create("div", "dropdown");
+		div.innerHTML = '\
+			<select id="company_sel">\
+			<option value="כל החברות">\
+				כל החברות\
+			</option>\
+			<option value="גולן טלקום">\
+				גולן טלקום\
+			</option>\
+			<option value="פלאפון">\
+				פלאפון\
+			</option>\
+			<option value="הוט מובייל">\
+				הוט מובייל\
+			</option>\
+			<option value="P.H.I">\
+				P.H.I (פרטנר והוט)\
+			</option>\
+			<option value="סלקום">\
+				סלקום\
+			</option>\
+		</select>\
+		';
+		return div;
+	};
+	dropdown.addTo(map);
+
+	$("#company_sel").on("change", function() {
+		
+		var valueSelected = $("#company_sel").val();
+		
+		cellTowers.eachLayer(function (layer) { 
+		if(valueSelected == 'כל החברות'){
+			layer.setStyle({ fillOpacity : 0.75,
 								weight: 1}) 
-		  }
-		  if(layer.feature.properties.company != valueSelected) {    
-			layer.setStyle({ fillOpacity : 0.001,
-								weight: 0}) 
-		  }
-		  
-	}
-		});
+		}else{
+			  if(layer.feature.properties.company == valueSelected) {    
+				layer.setStyle({ fillOpacity : 1,
+									weight: 1}) 
+			  }
+			  if(layer.feature.properties.company != valueSelected) {    
+				layer.setStyle({ fillOpacity : 0.001,
+									weight: 0}) 
+			  }
+			  
+		}
+			});
+		
+	});
 	
-});
+	// change visibility by zoom level
+	// need to add a change in visibility by mapbounds
+	
+	map.on('zoom', function() {
+		cellTowers.eachLayer(function (layer) { 
+		if(map.getZoom() >= 13){
+			layer.setStyle({ weight: 1,
+							opacity: 1,
+							radius : 5}) 
+				 }else{layer.setStyle({ weight: 0.3,
+										opacity: 0.3,
+										radius : 0.8}) }
+			});
+	});
