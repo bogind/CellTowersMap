@@ -70,6 +70,9 @@
 	var polygons = [];
 	var inrange = [0];
 	var info = L.control();
+	var b;
+	var bsw;
+	var bne;
 
 	
 	// Load geojson layer, add as circle markers, add styling,
@@ -326,7 +329,7 @@
 	});
 	
 	// change visibility by zoom level
-	// need to add a change in visibility by mapbounds
+	
 	
 	map.on('zoom', function() {
 		cellTowers.eachLayer(function (layer) { 
@@ -339,3 +342,20 @@
 										radius : 0.8}) }
 			});
 	});
+	
+	// draw only layers in bounds
+	map.on('bounds', function(){
+		var b = map.getBounds();
+		var bsw = b.getSouthWest();
+		var bne = b.getNorthEast()
+		cellTowers.eachLayer(function (layer) { 
+		if(layer.toGeoJSON().geometry.coordinates[0] > bsw.lat & layer.toGeoJSON().geometry.coordinates[1] > bsw.lng &
+			layer.toGeoJSON().geometry.coordinates[0] < bne.lat & layer.toGeoJSON().geometry.coordinates[1] < bsw.bne){
+			layer.setStyle({ stroke: true,
+							fill: true}) 
+				 }else{layer.setStyle({ stroke: false,
+										fill: false})  }
+			});
+		
+		});
+	
