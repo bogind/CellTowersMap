@@ -73,15 +73,20 @@
 	var b;
 	var bsw;
 	var bne;
+	var heatlatlng = [];
+	var heat;
+	var tempc;
 
 	
-	// Load geojson layer, add as circle markers, add styling,
-	// create buffers and invisible polygons used to calculate the inside value.
-	// after all that add controls for basemaps and layer to map
+	// Load geojson layer, add as circle markers, add styling.
+	
+	
 
 	$.getJSON("data/celltowers.geojson", function(data) {
 		
 		   cellTowers = L.geoJSON(data, {
+			   // removed the popup from the celltowers layer to make the entire map clickable
+			   
 					//onEachFeature: function (feature, layer) {
 						//layer.bindPopup(feature.properties.company);
 					//},
@@ -100,6 +105,9 @@
 					},
 					interactive: false
 				}).addTo(map);
+				
+				// create buffers and invisible polygons used to calculate the inside value.
+				
 								var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
 								cellTowerBuffer = L.geoJSON(buffered);
 									turfbuffer = cellTowerBuffer.toGeoJSON()
@@ -107,6 +115,8 @@
 										polygons.push(turfbuffer.features[i].geometry.coordinates);
 									}
 									turfbuffer = turf.polygons(polygons);
+		
+		// add controls for basemaps and layer to map
 		
 				var LayersControl = {
 				"cell Towers":cellTowers
@@ -116,7 +126,16 @@
 			// Had to move that here because ajax was too fast for the output to be caught outside
 			
 			L.control.layers(baseMaps, LayersControl).addTo(map);
-			return([ LayersControl, cellTowers]);
+			
+			// Calculate the heat map.
+			tempc = cellTowers.toGeoJSON();
+			for(i in tempc.features){
+				heatlatlng[i] = tempc.features[i].geometry.coordinates.reverse();
+				heatlatlng[i].push(convertRange( tempc.features[i].properties.intensity, [ 0, 60 ], [ 0.001, 1 ] ));							
+				};
+										
+			heat = L.heatLayer(heatlatlng, {radius: 25});
+			return([ LayersControl, cellTowers, heat]);
 	});
 	
 	
@@ -359,3 +378,109 @@
 		
 		});
 	
+	// Add Description
+	
+	var Description = L.control({position: "bottomleft"});
+	Description.onAdd = function (map) {
+		var div = L.DomUtil.create("div", "info Description");
+		div.innerHTML = '\
+		<center><h3>Cellular Antennas Map</h3></center>\
+		<p>This map allows the user to check\
+		how many cellular antennas are within a distance of 500 meters\
+		from a clicked location.<br>\
+		the button on the top left allows you to show or hide the buffers used\
+		for the calculation around the cell antennas.</p>\
+		<p>You can see only antennas from a selected company by using the Dropdown menu on the top right</p>\
+		<p>The creation of the buffers as well as the calculation are function used from <a href="http://turfjs.org/">Turf.JS</a>\
+		for further reeading:<br>\
+		<ul><li><a href="http://turfjs.org/docs#buffer">Turf.buffer</a></li>\
+			<li><a href="http://turfjs.org/docs#booleanWithin">Turf.booleanWithin</a></li>\
+		</ul></p>\
+		<p>The second button on the top left is used\
+		to turn the heat map on or off\
+		the heat map is calculated by using the intensity of each antenna\
+		and is created using the <a href="https://github.com/Leaflet/Leaflet.heat">Leaflet.heat</a> plugin.\
+		the intensity is rather low (compared to the max intesity) in most antennas,\
+		this can be see in the color of the heat map, which is almost completely blue,\
+		but consists of a scale from blue (low) through green and yellow to red (high).</p>\
+		<p>in order to remove outliers the top of scale is set to 50 instead of the actual max value of intensity which is 298.\
+		</p>\
+		';
+		return div;
+	};
+	
+	// create button to open description
+	
+	L.Control.desconoff = L.Control.extend(
+					{
+						options:
+						{
+							position: 'bottomleft',
+						},
+						onAdd: function (map) {
+							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
+							controlDiv.type="button";
+							controlDiv.title = "Show/Hide Description";
+							controlDiv.value = 'Description On/Off';
+							controlDiv.style.backgroundColor = 'white';     
+							controlDiv.style.height = '30px';
+							controlDiv.style.width = '120px';
+							L.DomEvent
+							.addListener(controlDiv, 'click', function () {
+							
+							
+							if(Description._map){
+								Description.remove();
+							}else{
+								Description.addTo(map);
+							}
+
+
+							});
+
+							return controlDiv;
+						}
+					});
+	var desconoff = new L.Control.desconoff();
+	map.addControl(desconoff);
+	
+	function convertRange( value, r1, r2 ) { 
+		return ( value - r1[ 0 ] ) * ( r2[ 1 ] - r2[ 0 ] ) / ( r1[ 1 ] - r1[ 0 ] ) + r2[ 0 ];
+	}
+	
+	// Calculate and add heatmap
+
+
+
+	L.Control.heatmaponoff = L.Control.extend(
+					{
+						options:
+						{
+							position: 'topleft',
+						},
+						onAdd: function (map) {
+							var controlDiv = L.DomUtil.create('input', 'leaflet-draw-toolbar leaflet-bar');
+							controlDiv.type="button";
+							controlDiv.title = "Show/Hide Heat Map of points";
+							controlDiv.value = 'HeatMap On/Off';
+							controlDiv.style.backgroundColor = 'white';     
+							controlDiv.style.height = '30px';
+							controlDiv.style.width = '120px';
+							L.DomEvent
+							.addListener(controlDiv, 'click', function () {
+								
+
+							if(heat._map){
+								heat.remove();
+							}else{
+								heat.addTo(map);
+							}
+
+
+							});
+
+							return controlDiv;
+						}
+					});
+	var heatmaponoff = new L.Control.heatmaponoff();
+	map.addControl(heatmaponoff);
