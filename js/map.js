@@ -59,6 +59,7 @@
 	var url = "https://" + cartoDBUserName +".carto.com/api/v2/sql?format=GeoJSON&q="
 	var sqlQuery = "SELECT id, company, type_, intensity  FROM cell_towers";
 	var cellTowers;
+	var buffered;
 	var cellTowerBuffer;
 	var turfbuffer;
 	var polygons = [];
@@ -108,8 +109,11 @@
 				
 				// create buffers and invisible polygons used to calculate the inside value.
 				
-								var buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
-								cellTowerBuffer = L.geoJSON(buffered);
+								buffered = turf.buffer(cellTowers.toGeoJSON(), 0.5, {units: 'kilometers'});
+								cellTowerBuffer = L.geoJSON(buffered, {
+									style:{ fillOpacity: 0.06,
+											opacity: 0.1}
+								});
 									turfbuffer = cellTowerBuffer.toGeoJSON()
 									for(i in turfbuffer.features){
 										polygons.push(turfbuffer.features[i].geometry.coordinates);
