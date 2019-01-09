@@ -488,3 +488,4 @@
 					});
 	var heatmaponoff = new L.Control.heatmaponoff();
 	map.addControl(heatmaponoff);
+L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
